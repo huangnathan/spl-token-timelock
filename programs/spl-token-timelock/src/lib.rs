@@ -37,9 +37,6 @@ pub mod spl_token_timelock {
         if tge_rate > 100 {
             return Err(ErrorCode::InvalidTGERate.into());
         }
-        if cliff >= (end_ts - start_ts) {
-            return Err(ErrorCode::InvalidCliffTime.into());
-        }
 
         let recipient_tokens_key = associated_token::get_associated_token_address(
             ctx.accounts.recipient.key,
@@ -393,7 +390,7 @@ impl Default for Vesting {
 pub fn available_for_withdrawal(vesting: &Vesting, current_ts: u64) -> u64 {
 
     if current_ts >= vesting.end_ts {
-        return vesting.total_amount;
+        return vesting.remaining_amount;
     }
 
     let mut available: u64 = 0;
