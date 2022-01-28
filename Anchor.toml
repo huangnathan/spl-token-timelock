@@ -1,0 +1,15 @@
+[programs.localnet]
+spl_token_timelock = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+[programs.devnet]
+spl_token_timelock = "BBbP5MHFSfcoygAtaPpWUmiEdb7yW2mZHDzg2MTnAsVa"
+[programs.mainnet]
+spl_token_timelock = "8e72pYCDaxu3GqMfeQ5r8wFgoZSYk6oua1Qo9XpsZjX"
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = "/home/wtxpwh/.config/solana/id.json"
+
+[scripts]
+test = "yarn run mocha -t 1000000 tests/"
