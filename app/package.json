@@ -1,0 +1,24 @@
+{
+  "name": "app",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@project-serum/anchor": "^0.20.1",
+    "@solana/spl-token": "^0.1.8",
+    "@solana/web3.js": "^1.33.0",
+    "element-plus": "^2.0.0",
+    "vue": "^3.2.29",
+    "vue-router": "^4.0.12",
+    "vuex": "^4.0.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^2.1.0",
+    "unplugin-auto-import": "^0.5.11",
+    "unplugin-vue-components": "^0.17.17",
+    "vite": "^2.7.13"
+  }
+}
