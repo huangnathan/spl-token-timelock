@@ -6,7 +6,7 @@ use anchor_spl::{
 
 use spl_token::amount_to_ui_amount;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("7ZKgDhm71m64SH96ipnEVdfTNaQMwxPij4hcCYDKXW4S");
 
 #[program]
 pub mod spl_token_timelock {
@@ -14,9 +14,6 @@ pub mod spl_token_timelock {
 
     pub fn create_vesting(
         ctx: Context<CreateVesting>,
-        vesting_id: u64,
-        vesting_name: [u8; 32],
-        investor_wallet_address: [u8; 64],
         nonce: u8,
         start_ts: u64,
         end_ts: u64,
@@ -60,15 +57,15 @@ pub mod spl_token_timelock {
             let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
             associated_token::create(cpi_ctx)?;
         }
-        
+
         let vesting = &mut ctx.accounts.vesting;
         vesting.magic = 0x544D4C4B;
         vesting.version = 1;
         vesting.nonce = nonce;
-        vesting.vesting_id = vesting_id;
-        vesting.vesting_name = vesting_name.clone();
-        vesting.investor_wallet_address = investor_wallet_address.clone();
-        
+        // vesting.vesting_id = vesting_id;
+        // vesting.vesting_name = vesting_name.clone();
+        // vesting.investor_wallet_address = investor_wallet_address.clone();
+
         vesting.withdrawn_amount = 0;
         vesting.remaining_amount = total_amount;
         vesting.total_amount = total_amount;
@@ -224,7 +221,7 @@ pub struct CreateVesting<'info> {
         token::authority = vault,
     )]
     pub vault: Account<'info, TokenAccount>,
-    
+
     pub mint: Account<'info, Mint>,
 
     pub token_program: Program<'info, Token>,
