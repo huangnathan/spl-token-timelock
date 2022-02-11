@@ -14,13 +14,13 @@ pub mod spl_token_timelock {
 
     pub fn create_vesting(
         ctx: Context<CreateVesting>,
+        total_amount: u64,
+        nonce: u8,
         vesting_id: u64,
         vesting_name: [u8; 32],
         investor_wallet_address: [u8; 64],
-        nonce: u8,
         start_ts: u64,
         end_ts: u64,
-        total_amount: u64,
         period: u64,
         cliff: u64,
         tge_rate: u64,
@@ -298,7 +298,6 @@ pub struct CancelVesting<'info> {
 
     #[account(
         mut,
-        close = granter,
         constraint = escrow_vault.mint == mint.key()  @ErrorCode::InvalidMintMismatch,
         seeds = [vesting.to_account_info().key.as_ref()],
         bump = vesting.nonce,
