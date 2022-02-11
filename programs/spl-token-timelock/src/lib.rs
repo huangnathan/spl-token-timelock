@@ -42,14 +42,14 @@ pub mod spl_token_timelock {
             ctx.accounts.recipient.key,
             ctx.accounts.mint.to_account_info().key,
         );
-        if &recipient_tokens_key != ctx.accounts.beneficiary.key {
+        if &recipient_tokens_key != ctx.accounts.recipient_token.key {
             return Err(ErrorCode::InvalidAssociatedTokenAddress.into());
         }
 
-        if ctx.accounts.beneficiary.data_is_empty() {
+        if ctx.accounts.recipient_token.data_is_empty() {
             let cpi_accounts = Create {
                 payer: ctx.accounts.granter.to_account_info(),
-                associated_token: ctx.accounts.beneficiary.clone(),
+                associated_token: ctx.accounts.recipient_token.clone(),
                 authority: ctx.accounts.recipient.to_account_info(),
                 rent: ctx.accounts.rent.to_account_info(),
                 mint: ctx.accounts.mint.to_account_info(),
@@ -74,11 +74,11 @@ pub mod spl_token_timelock {
         vesting.total_amount = total_amount;
 
         vesting.granter = *ctx.accounts.granter.to_account_info().key;
-        vesting.sender = *ctx.accounts.sender.to_account_info().key;
+        vesting.granter_token = *ctx.accounts.granter_token.to_account_info().key;
         vesting.recipient = *ctx.accounts.recipient.to_account_info().key;
-        vesting.beneficiary = *ctx.accounts.beneficiary.key;
+        vesting.recipient_token = *ctx.accounts.recipient_token.key;
         vesting.mint = *ctx.accounts.mint.to_account_info().key;
-        vesting.vault = *ctx.accounts.vault.to_account_info().key;
+        vesting.escrow_vault = *ctx.accounts.escrow_vault.to_account_info().key;
 
         vesting.created_ts = now;
         vesting.start_ts = start_ts;
@@ -102,8 +102,8 @@ pub mod spl_token_timelock {
         }
         
         let cpi_accounts = Transfer {
-            from: ctx.accounts.sender.to_account_info(),
-            to: ctx.accounts.vault.to_account_info(),
+            from: ctx.accounts.granter_token.to_account_info(),
+            to: ctx.accounts.escrow_vault.to_account_info(),
             authority: ctx.accounts.granter.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
@@ -138,9 +138,9 @@ pub mod spl_token_timelock {
         ];
         let signer = &[&seeds[..]];
         let cpi_accounts = Transfer {
-            from: ctx.accounts.vault.to_account_info(),
-            to: ctx.accounts.beneficiary.to_account_info(),
-            authority: ctx.accounts.vault.to_account_info(),
+            from: ctx.accounts.escrow_vault.to_account_info(),
+            to: ctx.accounts.recipient_token.to_account_info(),
+            authority: ctx.accounts.escrow_vault.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(signer);
@@ -162,7 +162,7 @@ pub mod spl_token_timelock {
     pub fn cancel(ctx: Context<CancelVesting>) -> ProgramResult {
 
         //Check the balance in the vault
-        let remaining = ctx.accounts.vault.amount;
+        let remaining = ctx.accounts.escrow_vault.amount;
         if remaining > 0 {
             // Transfer funds out.
             let seeds = &[
@@ -171,9 +171,9 @@ pub mod spl_token_timelock {
             ];
             let signer = &[&seeds[..]];
             let cpi_accounts = Transfer {
-                from: ctx.accounts.vault.to_account_info(),
-                to: ctx.accounts.sender.to_account_info(),
-                authority: ctx.accounts.vault.to_account_info(),
+                from: ctx.accounts.escrow_vault.to_account_info(),
+                to: ctx.accounts.granter_token.to_account_info(),
+                authority: ctx.accounts.escrow_vault.to_account_info(),
             };
             let cpi_program = ctx.accounts.token_program.to_account_info();
             let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(signer);
@@ -195,17 +195,17 @@ pub struct CreateVesting<'info> {
 
     #[account(
         mut,
-        constraint = sender.amount >= total_amount @ErrorCode::InsufficientDepositAmount,
-        constraint = sender.mint == mint.key() @ErrorCode::InvalidMintMismatch,
+        constraint = granter_token.amount >= total_amount @ErrorCode::InsufficientDepositAmount,
+        constraint = granter_token.mint == mint.key() @ErrorCode::InvalidMintMismatch,
         constraint = total_amount > 0 @ErrorCode::InvalidDepositAmount,
         associated_token::mint = mint,
         associated_token::authority = granter,
     )]
-    pub sender: Account<'info, TokenAccount>,
+    pub granter_token: Account<'info, TokenAccount>,
     ///the recipient of main account
     pub recipient: AccountInfo<'info>,
     ///the recipient of token account
-    pub beneficiary: AccountInfo<'info>,
+    pub recipient_token: AccountInfo<'info>,
 
     #[account(
         init,
@@ -221,9 +221,9 @@ pub struct CreateVesting<'info> {
         owner = token_program.key(),
         rent_exempt = enforce,
         token::mint = mint,
-        token::authority = vault,
+        token::authority = escrow_vault,
     )]
-    pub vault: Account<'info, TokenAccount>,
+    pub escrow_vault: Account<'info, TokenAccount>,
     
     pub mint: Account<'info, Mint>,
 
@@ -241,33 +241,28 @@ pub struct Withdraw<'info> {
     ///the recipient of token account
     #[account(
         mut,
-        constraint = beneficiary.mint == mint.key() @ErrorCode::InvalidMintMismatch,
+        constraint = recipient_token.mint == mint.key() @ErrorCode::InvalidMintMismatch,
     )]
-    pub beneficiary: Account<'info, TokenAccount>,
+    pub recipient_token: Account<'info, TokenAccount>,
 
     // Vesting.
     #[account(
         mut,
         owner = id() @ErrorCode::InvalidVestingOwner,
         constraint = vesting.magic == 0x544D4C4B @ErrorCode::InvalidMagic,
-        constraint = vesting.vault == vault.key() @ErrorCode::InvalidVaultMismatch,
-        constraint = vesting.beneficiary == beneficiary.key() @ErrorCode::InvalidBeneficiaryMismatch,
+        constraint = vesting.escrow_vault == escrow_vault.key() @ErrorCode::InvalidEscrowVaultMismatch,
+        constraint = vesting.recipient_token == recipient_token.key() @ErrorCode::InvalidRecipientTokenMismatch,
     )]
     pub vesting: Box<Account<'info, Vesting>>,
-
+    
     #[account(
         mut,
-        constraint = vault.mint == mint.key() @ErrorCode::InvalidMintMismatch,
+        constraint = escrow_vault.mint == mint.key() @ErrorCode::InvalidMintMismatch,
         seeds = [vesting.to_account_info().key.as_ref()],
         bump = vesting.nonce,
     )]
-    pub vault: Account<'info, TokenAccount>,
+    pub escrow_vault: Account<'info, TokenAccount>,
 
-    // #[account(
-    //     seeds = [vesting.to_account_info().key.as_ref()],
-    //     bump = vesting.nonce,
-    // )]
-    // pub vesting_signer: AccountInfo<'info>,
     #[account(address = vesting.mint @ErrorCode::InvalidMintMismatch,)]
     pub mint: Account<'info, Mint>,
 
@@ -284,37 +279,32 @@ pub struct CancelVesting<'info> {
 
     #[account(
         mut,
-        constraint = sender.mint == mint.key()  @ErrorCode::InvalidMintMismatch,
+        constraint = granter_token.mint == mint.key()  @ErrorCode::InvalidMintMismatch,
         associated_token::mint = mint,
         associated_token::authority = granter,
     )]
-    pub sender: Account<'info, TokenAccount>,
+    pub granter_token: Account<'info, TokenAccount>,
 
     #[account(
         mut,
         close = granter,
         owner = id() @ErrorCode::InvalidVestingOwner,
         constraint = vesting.magic == 0x544D4C4B @ErrorCode::InvalidMagic,
-        constraint = vesting.vault == vault.key() @ErrorCode::InvalidVaultMismatch,
+        constraint = vesting.escrow_vault == escrow_vault.key() @ErrorCode::InvalidEscrowVaultMismatch,
         constraint = vesting.granter == granter.key() @ErrorCode::InvalidGranterMismatch,
-        constraint = vesting.sender == sender.key() @ErrorCode::InvalidSenderMismatch,
+        constraint = vesting.granter_token == granter_token.key() @ErrorCode::InvalidGranterTokenMismatch,
     )]
     pub vesting: Box<Account<'info, Vesting>>,
 
     #[account(
         mut,
         close = granter,
-        constraint = vault.mint == mint.key()  @ErrorCode::InvalidMintMismatch,
+        constraint = escrow_vault.mint == mint.key()  @ErrorCode::InvalidMintMismatch,
         seeds = [vesting.to_account_info().key.as_ref()],
         bump = vesting.nonce,
     )]
-    pub vault: Account<'info, TokenAccount>,
+    pub escrow_vault: Account<'info, TokenAccount>,
 
-    // #[account(
-    //     seeds = [vesting.to_account_info().key.as_ref()],
-    //     bump = vesting.nonce,
-    // )]
-    // pub vesting_signer: AccountInfo<'info>,
     #[account(address = vesting.mint @ErrorCode::InvalidMintMismatch,)]
     pub mint: Account<'info, Mint>,
     pub token_program: Program<'info, Token>,
@@ -347,16 +337,16 @@ pub struct Vesting {
     /// Pubkey of the granter main account (signer)
     pub granter: Pubkey,
     /// Pubkey of the granter token account
-    pub sender: Pubkey,
-    /// Pubkey of the recipient token account
-    pub recipient: Pubkey,
+    pub granter_token: Pubkey,
     /// Pubkey of the recipient main account
-    pub beneficiary: Pubkey,
+    pub recipient: Pubkey,
+    /// Pubkey of the recipient token account
+    pub recipient_token: Pubkey,
     /// Pubkey of the token mint
     pub mint: Pubkey,
-    /// Pubkey of the account holding the locked tokens
-    pub vault: Pubkey,
-
+    /// Pubkey of the escrow vault account holding the locked tokens
+    pub escrow_vault: Pubkey,
+    
     /// Timestamp when stream was created
     pub created_ts: u64,
     /// Timestamp when the tokens start vesting
@@ -465,12 +455,12 @@ pub enum ErrorCode {
     InvalidMintMismatch,
     #[msg("Invalid vesting magic.")]
     InvalidMagic,
-    #[msg("The vault account mismatch.")]
-    InvalidVaultMismatch,
-    #[msg("The beneficiary account mismatch.")]
-    InvalidBeneficiaryMismatch,
+    #[msg("The escrow vault account mismatch.")]
+    InvalidEscrowVaultMismatch,
+    #[msg("The recipient token account mismatch.")]
+    InvalidRecipientTokenMismatch,
     #[msg("The granter account mismatch.")]
     InvalidGranterMismatch,
-    #[msg("The sender account mismatch.")]
-    InvalidSenderMismatch,
+    #[msg("The granter token account mismatch.")]
+    InvalidGranterTokenMismatch,
 }
