@@ -135,16 +135,7 @@ describe('spl-token-timelock', () => {
       mint,
       recipient.publicKey
     );
-    
-    await createAssociatedTokenAccount(
-      provider,
-      mint,
-      recipientToken,
-      recipient.publicKey,
-      granter.publicKey,
-      granter.payer
-    );
-    
+        
     console.log("\nBefore:");
     console.log("programId",program.programId.toBase58());
     console.log("granter wallet:", granter.publicKey.toBase58());
