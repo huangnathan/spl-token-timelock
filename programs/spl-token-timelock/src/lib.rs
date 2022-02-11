@@ -6,7 +6,7 @@ use anchor_spl::{
 
 use spl_token::amount_to_ui_amount;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("FgKd6qpp6QCD5Tj9DMtDrWnzZdKDfNTFwcxkDx8RfBVB");
 
 #[program]
 pub mod spl_token_timelock {
@@ -205,6 +205,7 @@ pub struct CreateVesting<'info> {
     ///the recipient of main account
     pub recipient: AccountInfo<'info>,
     ///the recipient of token account
+    #[account(mut)]
     pub recipient_token: AccountInfo<'info>,
 
     #[account(
