@@ -1,5 +1,5 @@
 [programs.localnet]
-spl_token_timelock = "FgKd6qpp6QCD5Tj9DMtDrWnzZdKDfNTFwcxkDx8RfBVB"
+spl_token_timelock = "C163CRT8Gvp5SxUGMfQfShu1uTmhSYRmkMaa8PuMWRm7"
 [programs.devnet]
 spl_token_timelock = "BBbP5MHFSfcoygAtaPpWUmiEdb7yW2mZHDzg2MTnAsVa"
 [programs.mainnet]
@@ -9,7 +9,7 @@ url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "localnet"
-wallet = "/home/thinkwsl/.config/solana/id.json"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run mocha -t 1000000 tests/"

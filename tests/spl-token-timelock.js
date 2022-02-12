@@ -151,6 +151,14 @@ describe('spl-token-timelock', () => {
   it("Create vesting", async() => {
       
       console.log("\nCreate vesting:");
+
+      let listener = null;
+      listener = program.addEventListener("CreateVestingEvent", (event, slot) => {
+        console.log("slot: ", slot);
+        console.log("event data: ",event.data.toNumber());
+        console.log("event status: ",event.status);
+      });
+
       let vesting_name = nacl.util.decodeUTF8("GoGo Corp");
       let investor_wallet_address = nacl.util.decodeUTF8("0x519d6DCdf1acbFD8774751F1043deeeA8778ef4a");
       const tx = await program.rpc.createVesting(
@@ -182,6 +190,8 @@ describe('spl-token-timelock', () => {
           signers: [granter.payer, vesting]
         }
       );
+
+      console.log("tx: ", tx);
       
       const _escrowVaultToken = await program.provider.connection.getAccountInfo(
         escrowVault
@@ -210,6 +220,8 @@ describe('spl-token-timelock', () => {
       );
 
       assert.ok(depositedAmount.toNumber() === _escrowVaultTokenData.amount);
+
+      await program.removeEventListener(listener);
   });
 
   it("Withdraw", async() => {
@@ -218,6 +230,14 @@ describe('spl-token-timelock', () => {
 
     console.log("\Withdraw:");
     console.log("recipient token", recipientToken.toBase58());
+
+    let listener = null;
+    listener = program.addEventListener("WithdrawEvent", (event, slot) => {
+      console.log("slot: ", slot);
+      console.log("event data: ",event.data.toNumber());
+      console.log("event status: ",event.status);
+    });
+
 
     const oldEscrowVaultAccountInfo = await program.provider.connection.getAccountInfo(
       escrowVault
@@ -255,7 +275,7 @@ describe('spl-token-timelock', () => {
     console.log("seed", vesting.publicKey.toBuffer());
     console.log("vesting", vesting.publicKey.toBase58());
 
-    await program.rpc.withdraw(
+    const tx = await program.rpc.withdraw(
       withdrawAmount,
       {
         accounts: {
@@ -269,6 +289,8 @@ describe('spl-token-timelock', () => {
         signers: []
       }
     );
+
+    console.log("tx: ", tx);
 
     const _vesting = await program.provider.connection.getAccountInfo(
       vesting.publicKey
@@ -318,11 +340,21 @@ describe('spl-token-timelock', () => {
     assert.ok(
       withdrawAmount.eq(new BN(newRecipientTokenAmount - oldRecipientTokenAmount))
     );
+
+    await program.removeEventListener(listener);
   });
 
   it("Cancel", async() => {
 
     await sleep(12000);
+
+    let listener = null;
+    listener = program.addEventListener("CancelEvent", (event, slot) => {
+      console.log("slot: ", slot);
+      console.log("event data: ",event.data.toNumber());
+      console.log("event status: ",event.status);
+    });
+
 
     const oldBalance = await provider.connection.getBalance(granter.publicKey);
      
@@ -372,6 +404,8 @@ describe('spl-token-timelock', () => {
         signers: [granter.payer]
       }
     );
+
+    console.log("tx: ", tx);
     
     let newEscrowVaultAmount = null;
     const newEscrowVaultAccountInfo = await program.provider.connection.getAccountInfo(
@@ -421,8 +455,11 @@ describe('spl-token-timelock', () => {
 
     const newBalance = await provider.connection.getBalance(granter.publicKey);
     console.log("Returned:", newBalance - oldBalance);
-    assert.ok(newEscrowVaultAmount === 0);
+    assert.ok(newEscrowVaultAmount === null);
     assert.ok((new BN(newRecipientTokenAmount + newGranterAmount)).eq(depositedAmount));
+
+    await program.removeEventListener(listener);
+
 
   });
 });

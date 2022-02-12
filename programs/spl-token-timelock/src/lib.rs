@@ -1,17 +1,16 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::{self, AssociatedToken, Create},
-    token::{self, Mint, TokenAccount, Transfer, Token}
+    token::{self, Mint, TokenAccount, Transfer, Token, CloseAccount}
 };
 
 use spl_token::amount_to_ui_amount;
 
-declare_id!("FgKd6qpp6QCD5Tj9DMtDrWnzZdKDfNTFwcxkDx8RfBVB");
+declare_id!("C163CRT8Gvp5SxUGMfQfShu1uTmhSYRmkMaa8PuMWRm7");
 
 #[program]
 pub mod spl_token_timelock {
     use super::*;
-
     pub fn create_vesting(
         ctx: Context<CreateVesting>,
         total_amount: u64,
@@ -28,13 +27,25 @@ pub mod spl_token_timelock {
         msg!("Initializing SPL token stream");
 
         let now = ctx.accounts.clock.unix_timestamp as u64;
-        if !duration_sanity(now, start_ts, end_ts, cliff) {
+        if !duration_sanity(now, start_ts, end_ts, cliff) { 
+            emit!(CreateVestingEvent {
+                data: ErrorCode::InvalidSchedule as u64,
+                status: "err".to_string(),
+            });
             return Err(ErrorCode::InvalidSchedule.into());
         }
         if period == 0 || period >= (end_ts - start_ts) {
+            emit!(CreateVestingEvent {
+                data: ErrorCode::InvalidPeriod as u64,
+                status: "err".to_string(),
+            });
             return Err(ErrorCode::InvalidPeriod.into());
         }
         if tge_rate > 100 {
+            emit!(CreateVestingEvent {
+                data: ErrorCode::InvalidTGERate as u64,
+                status: "err".to_string(),
+            });
             return Err(ErrorCode::InvalidTGERate.into());
         }
 
@@ -43,6 +54,10 @@ pub mod spl_token_timelock {
             ctx.accounts.mint.to_account_info().key,
         );
         if &recipient_tokens_key != ctx.accounts.recipient_token.key {
+            emit!(CreateVestingEvent {
+                data: ErrorCode::InvalidAssociatedTokenAddress as u64,
+                status: "err".to_string(),
+            });
             return Err(ErrorCode::InvalidAssociatedTokenAddress.into());
         }
 
@@ -110,6 +125,11 @@ pub mod spl_token_timelock {
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::transfer(cpi_ctx, total_amount)?;
 
+        emit!(CreateVestingEvent {
+            data: total_amount,
+            status: "ok".to_string(),
+        });
+
         Ok(())
     }
 
@@ -117,6 +137,10 @@ pub mod spl_token_timelock {
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> ProgramResult {
 
         if amount == 0 {
+            emit!(WithdrawEvent {
+                data: ErrorCode::InvalidWithdrawalAmount as u64,
+                status: "err".to_string(),
+            });
             return Err(ErrorCode::InvalidWithdrawalAmount.into());
         }
 
@@ -127,6 +151,10 @@ pub mod spl_token_timelock {
         );
 
         if amount > available{
+            emit!(WithdrawEvent {
+                data: ErrorCode::InsufficientWithdrawalBalance as u64,
+                status: "err".to_string(),
+            });
             return Err(ErrorCode::InsufficientWithdrawalBalance.into());
         }
         
@@ -155,6 +183,11 @@ pub mod spl_token_timelock {
         
         vesting.last_withdrawn_at = now;
 
+        emit!(WithdrawEvent {
+            data: amount,
+            status: "ok".to_string(),
+        });
+
         Ok(())
 
     }
@@ -163,13 +196,15 @@ pub mod spl_token_timelock {
 
         //Check the balance in the vault
         let remaining = ctx.accounts.escrow_vault.amount;
+
+        let seeds = &[
+            ctx.accounts.vesting.to_account_info().key.as_ref(),
+            &[ctx.accounts.vesting.nonce],
+        ];
+        let signer = &[&seeds[..]];
+
         if remaining > 0 {
             // Transfer funds out.
-            let seeds = &[
-                ctx.accounts.vesting.to_account_info().key.as_ref(),
-                &[ctx.accounts.vesting.nonce],
-            ];
-            let signer = &[&seeds[..]];
             let cpi_accounts = Transfer {
                 from: ctx.accounts.escrow_vault.to_account_info(),
                 to: ctx.accounts.granter_token.to_account_info(),
@@ -180,6 +215,19 @@ pub mod spl_token_timelock {
             token::transfer(cpi_ctx, remaining)?;
         }
 
+        let cpi_accounts = CloseAccount {
+            account: ctx.accounts.escrow_vault.to_account_info(),
+            destination: ctx.accounts.granter_token.to_account_info(),
+            authority: ctx.accounts.escrow_vault.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(signer);
+        token::close_account(cpi_ctx)?;
+
+        emit!(CancelEvent {
+            data: remaining,
+            status: "ok".to_string(),
+        });
 
         Ok(())
     }
@@ -369,6 +417,27 @@ pub struct Vesting {
     ///Amount to be unlocked per time during linear unlocking
     pub unlock_amount: u64,
     
+}
+
+#[event]
+pub struct CreateVestingEvent {
+    pub data: u64,
+    #[index]
+    pub status: String,
+}
+
+#[event]
+pub struct WithdrawEvent {
+    pub data: u64,
+    #[index]
+    pub status: String,
+}
+
+#[event]
+pub struct CancelEvent {
+    pub data: u64,
+    #[index]
+    pub status: String,
 }
 
 impl Default for Vesting {
