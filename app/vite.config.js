@@ -12,23 +12,23 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '/images': path.resolve(__dirname, './src/assets/images'),
+      '/images': path.resolve(__dirname, './src/assets/images')
     }
   },
   plugins: [
     vue(),
     eslintPlugin(),
     AutoImport({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver()]
     }),
     Components({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver()]
     })],
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `@import "@/assets/style/global.scss";`,
+        additionalData: `@import "@/assets/style/global.scss";`
       }
     }
-  },
+  }
 })
