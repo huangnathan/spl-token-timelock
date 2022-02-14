@@ -1,3 +1,13 @@
+:root {
+  --page-max-width: 1080px;
+
+  --white: rgb(255, 255, 255);
+  --white-f4: #f4f4f4;
+  --neutral-100: #1c1c1c;
+  --light-9a: #9a9a9a;
+  --green: #61e290;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

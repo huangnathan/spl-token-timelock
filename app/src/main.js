@@ -1,4 +1,5 @@
 import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
 import '@/assets/style/tailwind.css'
 
 import { router } from './router'
@@ -22,7 +23,7 @@ const walletOptions = {
         new PhantomWalletAdapter(),
         new SolflareWalletAdapter({ network: WalletAdapterNetwork.Devnet })
     ],
-    autoConnect: false
+    autoConnect: true
 }
 
 createApp(App)

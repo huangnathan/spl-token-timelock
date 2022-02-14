@@ -15,6 +15,10 @@ body,
   margin: 0;
   padding: 0;
   scroll-behavior: smooth;
+  background: #1c1c1c;
+
+  font-size: 20px;
+
   ::-webkit-scrollbar {
     display: none; /* Safari and Chrome */
   }
