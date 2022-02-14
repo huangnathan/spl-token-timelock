@@ -3,7 +3,14 @@
     <router-view />
   </div>
 </template>
+<script setup>
+import { onMounted } from 'vue'
+import init from '@/core/init'
 
+onMounted(() => {
+  init()
+})
+</script>
 <style lang="scss">
 @import 'assets/style/global.scss';
 #app {

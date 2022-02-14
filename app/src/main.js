@@ -2,6 +2,10 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import '@/assets/style/tailwind.css'
 
+import i18n from './locales'
+
+import store from './store'
+
 import { router } from './router'
 
 import { createApp } from 'vue'
@@ -26,8 +30,11 @@ const walletOptions = {
     autoConnect: true
 }
 
-createApp(App)
-    .use(SolanaWallets, walletOptions)
-    .use(ElementPlus)
-    .use(router)
-    .mount('#app')
+export const app = createApp(App)
+app.use(SolanaWallets, walletOptions)
+app.use(ElementPlus)
+app.use(router)
+app.use(i18n)
+app.use(store)
+app.mount('#app')
+
