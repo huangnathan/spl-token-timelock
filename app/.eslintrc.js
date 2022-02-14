@@ -5,8 +5,8 @@ module.exports = {
         'vue/setup-compiler-macros': true
     },
     'extends': [
-        'eslint:recommended',
         'plugin:vue/vue3-recommended',
+        'eslint:recommended'
     ],
     parser: 'vue-eslint-parser',
     rules: {
@@ -23,7 +23,10 @@ module.exports = {
         'vue/no-unused-components': 0,
         'vue/multiline-html-element-content-newline': 0,
         'vue/no-use-v-if-with-v-for': 0,
-        'vue/html-closing-bracket-newline': 0,
+        'vue/html-closing-bracket-newline': ['error', {
+            'singleline': 'never',
+            'multiline': 'never'
+        }],
         'vue/no-parsing-error': 0,
         'no-tabs': 0,
         'quotes': [
@@ -57,9 +60,20 @@ module.exports = {
         'template-curly-spacing': 'off',
         'indent': 'off',
         'vue/require-default-prop': 'off',
-        'vue/multi-word-component-names': ['error', {
-            'ignores': ['', 'index']
-        }]
+        'no-trailing-spaces': 2,
+        'no-unexpected-multiline': 2,
+        'comma-dangle': [2, 'never'],
+        'no-fallthrough': 2,
+        'no-useless-escape': 0,
+        'block-spacing': [1, 'never'],
+        'no-mixed-spaces-and-tabs': 2,
+        'space-in-parens': [2, 'never'],
+        'no-unused-vars': [2, {
+            'vars': 'all',
+            'args': 'none'
+        }],
+        'vue/multi-word-component-names': 0,
+        'vue/v-on-event-hyphenation': 0
     },
     overrides: [
         {
