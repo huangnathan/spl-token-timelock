@@ -23,3 +23,24 @@ body,
     display: none; /* Safari and Chrome */
   }
 }
+
+.bg-green-gradient {
+  background: linear-gradient(90deg, #61e290 7.57%, #92e261 88.38%);
+}
+
+.btn-common {
+  width: fit-content;
+  height: 2.4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(90deg, #61e290 7.57%, #92e261 88.38%);
+  box-sizing: border-box;
+  color: white;
+  font-size: 0.8rem;
+  border-radius: 0.7rem;
+
+  &:active {
+    background: linear-gradient(90deg, #92e261 7.57%, #61e290.38%);
+  }
+}

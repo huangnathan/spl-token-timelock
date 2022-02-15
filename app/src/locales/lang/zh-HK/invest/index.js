@@ -1,0 +1,20 @@
+export default {
+    'invest.list': '投資列表',
+    'invest.create': '創建',
+    'invest.num': '數量',
+    'invest.token': '代幣',
+    'invest.investor': '投資方',
+    'invest.input.investor': '請輸入名稱，如-Daniel',
+    'invest.account': '收款地址',
+    'invest.input.account': '請輸入收款地地址',
+    'invest.start.date': '開始日期',
+    'invest.start.time': '開始時間',
+    'invest.end.date': '結束日期',
+    'invest.end.time': '結束時間',
+    'invest.advanced': '高級選項',
+    'invest.cliff.date': '解凍日期',
+    'invest.cliff.time': '解凍時間',
+    'invest.cliff.percent': '解凍比例（冷凍期後立即解鎖）',
+    'invest.tge.percent': 'TGE解鎖（建立合約解鎖）',
+    'invest.desc': '說明'
+}

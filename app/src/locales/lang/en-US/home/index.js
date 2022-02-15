@@ -1,3 +1,4 @@
 export default {
-    'home.subtitle': 'Home'
+    'home.subtitle': 'Welcome to GAMEYOO',
+    'home.desc': 'Please connect wallet'
 }

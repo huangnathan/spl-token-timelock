@@ -1,19 +1,9 @@
 <template>
-  <div class="text-green text-size-24">{{ $t('home.subtitle') }}</div>
-  <el-button @click="clickSwitch">Switch lang</el-button>
+  <div class="text-white text-size-48 font-bold">{{ $t('home.subtitle') }}</div>
+  <div class="text-white text-size-24 mt-space-12">{{ $t('home.desc') }}</div>
+  <el-image fit="fill" class="mt-space-16" style="width:500px; height:384px;" src="/images/img_home_bg.png"></el-image>
 </template>
 <script setup>
-import { computed } from 'vue'
-import { useStore } from 'vuex'
-import { LANGUAGE_EN_US, LANGUAGE_ZH_HK } from '@/store/mutation-types'
-
-const store = useStore()
-const current = computed(() => store.getters.lang)
-
-const clickSwitch = () => {
-  console.error('-- clickSwitch:', current.value)
-  store.dispatch('setLang', current.value === LANGUAGE_EN_US ? LANGUAGE_ZH_HK : LANGUAGE_EN_US)
-}
 </script>
 <script>
 export default {

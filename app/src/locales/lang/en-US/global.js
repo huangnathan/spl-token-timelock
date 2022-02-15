@@ -18,6 +18,7 @@ export default {
   nodata: 'No data',
   retry: 'Retry',
   copy: 'Copy',
+  back: 'Back',
   'params.err': 'Params error',
   'copy.success': 'Copy Success',
   DHS: '{d}days {h}hours {m}minutes'

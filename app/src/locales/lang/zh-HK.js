@@ -1,6 +1,7 @@
 import global from './zh-HK/global'
 
 import home from './zh-HK/home'
+import invest from './zh-HK/invest'
 import zhTw from 'element-plus/lib/locale/lang/zh-tw'
 
 const components = {
@@ -10,5 +11,6 @@ const components = {
 export default {
   ...components,
   ...global,
-  ...home
+  ...home,
+  ...invest
 }

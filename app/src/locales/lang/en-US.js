@@ -1,6 +1,7 @@
 import global from './en-US/global'
 
 import home from './en-US/home'
+import invest from './en-US/invest'
 import en from 'element-plus/es/locale/lang/en'
 
 const components = {
@@ -10,5 +11,6 @@ const components = {
 export default {
   ...components,
   ...global,
-  ...home
+  ...home,
+  ...invest
 }

@@ -19,6 +19,7 @@ export default {
   nodata: '暫無數據',
   retry: '重試',
   copy: '複製',
+  back: '返回',
   'params.err': '參數錯誤',
   'copy.success': '複製成功',
   DHS: '{d}天 {h}小時 {m}分'

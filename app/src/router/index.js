@@ -12,6 +12,18 @@ const routes = [
                 name: 'Home',
                 meta: { keepAlive: true },
                 component: () => import('@/views/home/index.vue')
+            },
+            {
+                path: '/invest/list',
+                name: 'InvestList',
+                meta: { keepAlive: true },
+                component: () => import('@/views/manager/InvestList.vue')
+            },
+            {
+                path: '/invest/create',
+                name: 'CreateInvest',
+                meta: { keepAlive: true },
+                component: () => import('@/views/manager/CreateInvest.vue')
             }
         ]
     }
