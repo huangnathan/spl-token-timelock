@@ -15,6 +15,13 @@ export default defineConfig({
       '/images': path.resolve(__dirname, './src/assets/images')
     }
   },
+  define: {
+    'process': {
+      env: {
+        BROWSER: true
+      }
+    }
+  },
   plugins: [
     vue(),
     eslintPlugin(),

@@ -16,13 +16,12 @@
           <div class="flex-grow flex flex-col mr-space-32">
             <text>{{ $t('invest.num') }}</text>
             <el-input-number
-              v-model="inputNum"
+              v-model="inputAmount"
               class="w-full mt-space-8"
               size="large"
               style="width: 100%"
               :controls="false"
-              :min="0"
-              :max="100"></el-input-number>
+              :min="1"></el-input-number>
           </div>
           <div class="flex-grow flex flex-col">
             <text>{{ $t('invest.token') }}</text>
@@ -87,6 +86,30 @@
               v-model="endTime"
               style="width: 100%"
               :placeholder="$t('invest.input.end.time')"></el-time-picker>
+          </div>
+        </div>
+
+        <div class="w-full flex flex-col mt-space-32">
+          <text class="mb-space-8">{{ $t('invest.period') }}</text>
+          <div class="w-full flex">
+            <div class="flex-grow">
+              <el-input-number
+                v-model="inputPeriod"
+                class="flex-grow"
+                size="large"
+                style="width: 100%"
+                :controls="false"
+                :min="1"></el-input-number>
+            </div>
+            <div class="flex-grow ml-space-32">
+              <el-select v-model="periodUnit">
+                <el-option
+                  v-for="(item, index) in UNITS"
+                  :key="index"
+                  :label="item.label"
+                  :value="item.value"></el-option>
+              </el-select>
+            </div>
           </div>
         </div>
 
@@ -161,10 +184,16 @@ import { throttle } from '@/utils'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+import { useProgram } from '@/composable/anchorProgram'
 import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
 
-const inputNum = ref(0)
+dayjs.extend(duration)
+
+const { t } = useI18n()
+const { createVesting } = useProgram()
+
+const inputAmount = ref(0)
 const inputToken = ref('')
 const inputInvestor = ref('')
 const inputAccount = ref('')
@@ -178,6 +207,20 @@ const disableEnd = (date) => {
     ? date.getTime() < startDate.value.getTime()
     : date.getTime() < Date.now()
 }
+const inputPeriod = ref(0)
+const UNITS = [
+  { value: 'd', label: t('day') },
+  { value: 'M', label: t('month') },
+  { value: 'w', label: t('week') },
+  { value: 'h', label: t('hour') },
+  { value: 'm', label: t('minute') },
+  { value: 's', label: t('second') }
+]
+const periodUnit = ref(UNITS[0].value)
+const period = computed(() => {
+  return dayjs.duration(inputPeriod.value,periodUnit.value).asSeconds()
+})
+
 const openAdvanced = ref(false)
 const cliffDate = ref()
 const cliffTime = ref()
@@ -212,7 +255,7 @@ const cliff = computed(() => {
 })
 
 const checkParams = () => {
-  if (inputNum.value === 0) {
+  if (inputAmount.value === 0) {
     ElMessage.error(`${t('invest.num.hint')}`)
     return false
   }
@@ -243,7 +286,18 @@ const checkParams = () => {
 }
 const clickCreate = throttle(() => {
   if (checkParams()) {
-    console.error('---  开始调用合约 ----')
+    createVesting({
+      amount: inputAmount.value,
+      token: inputToken.value,
+      investorName: inputInvestor.value,
+      investorAddress: inputAccount.value,
+      start: start.value,
+      end: end.value,
+      period: period.value,
+      cliff: cliff.value || 0,
+      cliffPercent: inputCliffPercent.value,
+      tgePercent: inputTgePercent.value
+    })
   }
 })
 </script>

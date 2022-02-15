@@ -17,6 +17,7 @@ export default {
     'invest.input.end.date': '選擇結束日期',
     'invest.end.time': '結束時間',
     'invest.input.end.time': '選擇結束時間',
+    'invest.period': '結算頻率',
     'invest.advanced': '高級選項',
     'invest.cliff.date': '解凍日期',
     'invest.input.cliff.date': '選擇解凍日期',
@@ -26,5 +27,11 @@ export default {
     'invest.cliff.hint': '解凍時間需要在開始時間和結束時間之間',
     'invest.cliff.percent': '解凍比例（冷凍期後立即解鎖）',
     'invest.tge.percent': 'TGE解鎖（建立合約解鎖）',
-    'invest.desc': '說明'
+    'invest.desc': '說明',
+    'day': '天',
+    'month': '月',
+    'week': '周',
+    'hour': '時',
+    'minute': '分',
+    'second': '秒'
 }
