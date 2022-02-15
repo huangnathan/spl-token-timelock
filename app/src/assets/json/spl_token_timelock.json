@@ -1,0 +1,477 @@
+{
+  "version": "0.1.0",
+  "name": "spl_token_timelock",
+  "instructions": [
+    {
+      "name": "createVesting",
+      "accounts": [
+        {
+          "name": "granter",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "granterToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "recipient",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "recipientToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "vesting",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "escrowVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "totalAmount",
+          "type": "u64"
+        },
+        {
+          "name": "nonce",
+          "type": "u8"
+        },
+        {
+          "name": "vestingId",
+          "type": "u64"
+        },
+        {
+          "name": "vestingName",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "investorWalletAddress",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        },
+        {
+          "name": "startTs",
+          "type": "u64"
+        },
+        {
+          "name": "endTs",
+          "type": "u64"
+        },
+        {
+          "name": "period",
+          "type": "u64"
+        },
+        {
+          "name": "cliff",
+          "type": "u64"
+        },
+        {
+          "name": "tgeRate",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw",
+      "accounts": [
+        {
+          "name": "recipientToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "vesting",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "escrowVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "cancel",
+      "accounts": [
+        {
+          "name": "granter",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "granterToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "vesting",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "escrowVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Vesting",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "magic",
+            "type": "u32"
+          },
+          {
+            "name": "version",
+            "type": "u32"
+          },
+          {
+            "name": "nonce",
+            "type": "u8"
+          },
+          {
+            "name": "vestingId",
+            "type": "u64"
+          },
+          {
+            "name": "vestingName",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "investorWalletAddress",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "withdrawnAmount",
+            "type": "u64"
+          },
+          {
+            "name": "remainingAmount",
+            "type": "u64"
+          },
+          {
+            "name": "totalAmount",
+            "type": "u64"
+          },
+          {
+            "name": "granter",
+            "type": "publicKey"
+          },
+          {
+            "name": "granterToken",
+            "type": "publicKey"
+          },
+          {
+            "name": "recipient",
+            "type": "publicKey"
+          },
+          {
+            "name": "recipientToken",
+            "type": "publicKey"
+          },
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "escrowVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "createdTs",
+            "type": "u64"
+          },
+          {
+            "name": "startTs",
+            "type": "u64"
+          },
+          {
+            "name": "endTs",
+            "type": "u64"
+          },
+          {
+            "name": "accountingTs",
+            "type": "u64"
+          },
+          {
+            "name": "lastWithdrawnAt",
+            "type": "u64"
+          },
+          {
+            "name": "period",
+            "type": "u64"
+          },
+          {
+            "name": "cliff",
+            "type": "u64"
+          },
+          {
+            "name": "tgeRate",
+            "type": "u64"
+          },
+          {
+            "name": "tgeAmount",
+            "type": "u64"
+          },
+          {
+            "name": "unlockAmount",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "CreateVestingEvent",
+      "fields": [
+        {
+          "name": "data",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "WithdrawEvent",
+      "fields": [
+        {
+          "name": "data",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "CancelEvent",
+      "fields": [
+        {
+          "name": "data",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "index": true
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidSchedule",
+      "msg": "Invalid vesting schedule given."
+    },
+    {
+      "code": 6001,
+      "name": "InvalidTimestamp",
+      "msg": "Vesting end must be greater than start and the current unix timestamp."
+    },
+    {
+      "code": 6002,
+      "name": "InvalidPeriod",
+      "msg": "The number of vesting periods must be greater than zero."
+    },
+    {
+      "code": 6003,
+      "name": "InvalidTGERate",
+      "msg": "The TGE rate of vesting must be less than 100"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidCliffTime",
+      "msg": "The cliff time must be less than vesting time."
+    },
+    {
+      "code": 6005,
+      "name": "InvalidDepositAmount",
+      "msg": "The vesting deposit amount must be greater than zero."
+    },
+    {
+      "code": 6006,
+      "name": "InsufficientDepositAmount",
+      "msg": "Balance must go up when performing a deposit"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidWithdrawalAmount",
+      "msg": "The vesting withdrawal amount must be greater than zero."
+    },
+    {
+      "code": 6008,
+      "name": "InvalidProgramAddress",
+      "msg": "Invalid program address. Did you provide the correct nonce?"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidAssociatedTokenAddress",
+      "msg": "Invalid associated token address. Did you provide the correct address?"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidVestingOwner",
+      "msg": "Invalid vesting owner."
+    },
+    {
+      "code": 6011,
+      "name": "InsufficientWithdrawalBalance",
+      "msg": "Insufficient withdrawal balance."
+    },
+    {
+      "code": 6012,
+      "name": "WithdrawLimit",
+      "msg": "Tried to withdraw over the specified limit"
+    },
+    {
+      "code": 6013,
+      "name": "Unauthorized",
+      "msg": "You do not have sufficient permissions to perform this action."
+    },
+    {
+      "code": 6014,
+      "name": "Overflow",
+      "msg": "Operation overflowed"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidMintMismatch",
+      "msg": "The mint mismatch."
+    },
+    {
+      "code": 6016,
+      "name": "InvalidMagic",
+      "msg": "Invalid vesting magic."
+    },
+    {
+      "code": 6017,
+      "name": "InvalidEscrowVaultMismatch",
+      "msg": "The escrow vault account mismatch."
+    },
+    {
+      "code": 6018,
+      "name": "InvalidRecipientTokenMismatch",
+      "msg": "The recipient token account mismatch."
+    },
+    {
+      "code": 6019,
+      "name": "InvalidGranterMismatch",
+      "msg": "The granter account mismatch."
+    },
+    {
+      "code": 6020,
+      "name": "InvalidGranterTokenMismatch",
+      "msg": "The granter token account mismatch."
+    }
+  ],
+  "metadata": {
+    "address": "7ZKgDhm71m64SH96ipnEVdfTNaQMwxPij4hcCYDKXW4S"
+  }
+}
